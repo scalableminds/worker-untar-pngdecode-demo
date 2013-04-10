@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Worker Demo</title>
+
+  </head>
+  <body>
+
+    <canvas id="test" width="1000" height="1000"></canvas>
+
+    <script src="bitjs/io.js"></script>
+    <script src="bitjs/untar.js"></script>
+    <script>
+
+      var timeStart = Date.now();
+      var URL = this.webkitURL ? this.webkitURL : this.URL;
+
+      var worker = new Worker("worker.js");
+
+      worker.postMessage("output.tar");
+      worker.onmessage = function (event) {
+
+        var canvas = document.getElementById("test");
+        var context = canvas.getContext("2d");
+
+        var img = new Image();
+        img.onload = function () {
+          canvas.width = img.width;
+          canvas.height = img.height;
+          context.drawImage(img, 0, 0);
+
+          console.log("draw", Date.now() - timeStart);
+        }
+        img.src = URL.createObjectURL(event.data.blob);
+
+      }
+
+    </script>
+    
+  </body>
+</html>
