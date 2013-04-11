@@ -1,4 +1,4 @@
-importScripts("jpg.js", "generatepng.js", "bitjs/io.js", "bitjs/untar.js");
+importScripts("bitjs/io.js", "bitjs/untar.js");
 
 var URL = this.webkitURL ? this.webkitURL : this.URL;
 
