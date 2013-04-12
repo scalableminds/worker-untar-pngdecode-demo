@@ -10,6 +10,10 @@
 
     <script src="bitjs/io.js"></script>
     <script src="bitjs/untar.js"></script>
+    <script src="lib/deflate.min.js"></script>
+    <script src="lib/crc32.js"></script>
+    <script src="lib/png_decoder.js"></script>
+    <script src="lib/png_encoder.js"></script>
     <script>
 
       var timeStart = Date.now();
@@ -29,9 +33,29 @@
           canvas.height = img.height;
           context.drawImage(img, 0, 0);
 
+          var data = context.getImageData(0, 0, img.width, img.height);
+
+          console.profile("pngencode");
+          var blobParts = pngencode(data);
+          var blob = new Blob(blobParts, { type : "image/png" });
+          var blobUrl = URL.createObjectURL(blob);
+
+          // pngdecode(blobParts);
+
+          var img2 = new Image();
+          img2.onload = function () {
+            console.profileEnd("pngencode");
+            context.fillStyle = "rgba(122,122,12,.5);";
+            context.fillRect(0, 0, 100, 100);
+            context.drawImage(img2, 0, 0);
+          }
+          console.log(img2.src = blobUrl);
+
           console.log("draw", Date.now() - timeStart);
         }
         img.src = URL.createObjectURL(event.data.blob);
+
+        worker.onmessage = function () {};
 
       }
 
