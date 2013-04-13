@@ -17,57 +17,89 @@
     <script src="lib/png_encoder.js"></script>
     <script>
 
-      var timeStart = Date.now();
-      var URL = this.webkitURL ? this.webkitURL : this.URL;
-
-      function arrayIsEqual(a, b) {
-        if (a.length != b.length) return false;
-
-        for (var i = 0; i < a.length; i++)
-          if (a[i] != b[i]) return false;
-
-        return true;
-      }
-
-      var worker = new Worker("worker.js");
-
-      worker.postMessage("output.tar");
-      worker.onmessage = function (event) {
+      var xhr = new XMLHttpRequest();
+      xhr.onload = function () {
 
         var canvas = document.getElementById("test");
         var context = canvas.getContext("2d");
 
-        var img = new Image();
-        img.onload = function () {
-          canvas.width = img.width;
-          canvas.height = img.height;
-          context.drawImage(img, 0, 0);
+        var pngData = new Uint8Array(xhr.response);
 
-          var data = context.getImageData(0, 0, img.width, img.height);
+        var timeStart = Date.now();
+        var fullImg = pngdecode(pngData);
+        var imgs = [];
+        for (var y = 0; y < fullImg.height; y += 200)
+          for (var x = 0; x < fullImg.width; x += 200)
+            imgs.push(cropImage(fullImg, x, y, 200, 200));
 
-          console.profile("pngencode");
-          var blobParts = pngencode(data);
-          var blob = new Blob([blobParts], { type : "image/png" });
-          var blobUrl = URL.createObjectURL(blob);
+        alert(Date.now() - timeStart);
 
-          console.log(arrayIsEqual(pngdecode(blobParts).data, data.data));
+        var img = imgs[2];
+        canvas.width = img.width;
+        canvas.height = img.height;
 
-          var img2 = new Image();
-          img2.onload = function () {
-            console.profileEnd("pngencode");
-            context.fillStyle = "rgba(122,122,12,.5);";
-            context.fillRect(0, 0, 100, 100);
-            context.drawImage(img2, 0, 0);
-          }
-          console.log(img2.src = blobUrl);
+        var imgData = context.createImageData(img.width, img.height);
+        imgData.data.set(img.data, 0);
 
-          console.log("draw", Date.now() - timeStart);
-        }
-        img.src = URL.createObjectURL(event.data.blob);
-
-        worker.onmessage = function () {};
-
+        context.putImageData(imgData, 0, 0);
+        
       }
+      xhr.responseType = "arraybuffer"; 
+      xhr.open("get", "output.png", true);
+      xhr.send();
+
+
+      // var timeStart = Date.now();
+      // var URL = this.webkitURL ? this.webkitURL : this.URL;
+
+      // function arrayIsEqual(a, b) {
+      //   if (a.length != b.length) return false;
+
+      //   for (var i = 0; i < a.length; i++)
+      //     if (a[i] != b[i]) return false;
+
+      //   return true;
+      // }
+
+      // var worker = new Worker("worker.js");
+
+      // worker.postMessage("output.tar");
+      // worker.onmessage = function (event) {
+
+      //   var canvas = document.getElementById("test");
+      //   var context = canvas.getContext("2d");
+
+      //   var img = new Image();
+      //   img.onload = function () {
+      //     canvas.width = img.width;
+      //     canvas.height = img.height;
+      //     context.drawImage(img, 0, 0);
+
+      //     var data = context.getImageData(0, 0, img.width, img.height);
+
+      //     console.profile("pngencode");
+      //     var blobParts = pngencode(data);
+      //     var blob = new Blob([blobParts], { type : "image/png" });
+      //     var blobUrl = URL.createObjectURL(blob);
+
+      //     console.log(arrayIsEqual(pngdecode(blobParts).data, data.data));
+
+      //     var img2 = new Image();
+      //     img2.onload = function () {
+      //       console.profileEnd("pngencode");
+      //       context.fillStyle = "rgba(122,122,12,.5);";
+      //       context.fillRect(0, 0, 100, 100);
+      //       context.drawImage(img2, 0, 0);
+      //     }
+      //     console.log(img2.src = blobUrl);
+
+      //     console.log("draw", Date.now() - timeStart);
+      //   }
+      //   img.src = URL.createObjectURL(event.data.blob);
+
+      //   worker.onmessage = function () {};
+
+      // }
 
     </script>
     
