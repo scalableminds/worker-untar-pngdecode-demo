@@ -1,40 +1,25 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Worker Demo</title>
+    <title>Worker + Untar + PNGdecode Demo</title>
 
   </head>
   <body>
 
     <canvas id="test" width="1000" height="1000"></canvas>
 
-    <script src="bitjs/io.js"></script>
-    <script src="bitjs/untar.js"></script>
-    <script src="lib/deflate.min.js"></script>
-    <script src="lib/inflate.min.js"></script>
-    <script src="lib/crc32.js"></script>
-    <script src="lib/png_decoder.js"></script>
-    <script src="lib/png_encoder.js"></script>
     <script>
 
-      var xhr = new XMLHttpRequest();
-      xhr.onload = function () {
+      var worker = new Worker("worker.js");
+
+      worker.postMessage("output.tar");
+
+      worker.onmessage = function (event) {
 
         var canvas = document.getElementById("test");
         var context = canvas.getContext("2d");
 
-        var pngData = new Uint8Array(xhr.response);
-
-        var timeStart = Date.now();
-        var fullImg = pngdecode(pngData);
-        var imgs = [];
-        for (var y = 0; y < fullImg.height; y += 200)
-          for (var x = 0; x < fullImg.width; x += 200)
-            imgs.push(cropImage(fullImg, x, y, 200, 200));
-
-        alert(Date.now() - timeStart);
-
-        var img = imgs[2];
+        var img = event.data[2];
         canvas.width = img.width;
         canvas.height = img.height;
 
@@ -42,64 +27,8 @@
         imgData.data.set(img.data, 0);
 
         context.putImageData(imgData, 0, 0);
-        
+
       }
-      xhr.responseType = "arraybuffer"; 
-      xhr.open("get", "output.png", true);
-      xhr.send();
-
-
-      // var timeStart = Date.now();
-      // var URL = this.webkitURL ? this.webkitURL : this.URL;
-
-      // function arrayIsEqual(a, b) {
-      //   if (a.length != b.length) return false;
-
-      //   for (var i = 0; i < a.length; i++)
-      //     if (a[i] != b[i]) return false;
-
-      //   return true;
-      // }
-
-      // var worker = new Worker("worker.js");
-
-      // worker.postMessage("output.tar");
-      // worker.onmessage = function (event) {
-
-      //   var canvas = document.getElementById("test");
-      //   var context = canvas.getContext("2d");
-
-      //   var img = new Image();
-      //   img.onload = function () {
-      //     canvas.width = img.width;
-      //     canvas.height = img.height;
-      //     context.drawImage(img, 0, 0);
-
-      //     var data = context.getImageData(0, 0, img.width, img.height);
-
-      //     console.profile("pngencode");
-      //     var blobParts = pngencode(data);
-      //     var blob = new Blob([blobParts], { type : "image/png" });
-      //     var blobUrl = URL.createObjectURL(blob);
-
-      //     console.log(arrayIsEqual(pngdecode(blobParts).data, data.data));
-
-      //     var img2 = new Image();
-      //     img2.onload = function () {
-      //       console.profileEnd("pngencode");
-      //       context.fillStyle = "rgba(122,122,12,.5);";
-      //       context.fillRect(0, 0, 100, 100);
-      //       context.drawImage(img2, 0, 0);
-      //     }
-      //     console.log(img2.src = blobUrl);
-
-      //     console.log("draw", Date.now() - timeStart);
-      //   }
-      //   img.src = URL.createObjectURL(event.data.blob);
-
-      //   worker.onmessage = function () {};
-
-      // }
 
     </script>
     

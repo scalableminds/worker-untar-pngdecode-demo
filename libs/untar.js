@@ -6,6 +6,9 @@
  * Reference Documentation:
  *
  * TAR format: http://www.gnu.org/software/automake/manual/tar/Standard.html
+ *
+ * Extracted and adapted by Norman Rzepka (normanrz)
+ * scalable minds 2013 | MIT license
  */
 
 var Untar = (function () {
@@ -22,9 +25,6 @@ var Untar = (function () {
     var postEnd = function (localfiles) {
       if (self.onend)
         self.onend(localfiles);
-    }
-    var info = function () {
-      // console.log.apply(console, arguments);
     }
 
     // Removes all characters from the first zero-byte in the string onwards.
@@ -70,13 +70,8 @@ var Untar = (function () {
       this.filename = this.name;
       this.fileData = null;
 
-      info("Untarring file '" + this.filename + "'");
-      info("  size = " + this.size);
-      info("  typeflag = " + this.typeflag);
-
       // A regular file.
       if (this.typeflag == 0) {
-      	info("  This is a regular file.");
       	this.fileData = new Uint8Array(bstream.bytes.buffer, bstream.ptr, this.size);
         if (this.name.length > 0 && this.size > 0 && this.fileData && this.fileData.buffer) {
           this.isValid = true;
@@ -89,8 +84,6 @@ var Untar = (function () {
       	if (remaining > 0 && remaining < 512) {
           bstream.readBytes(remaining);
       	}
-      } else if (this.typeflag == 5) {
-      	 info("  This is a directory.")
       }
     };
 
@@ -120,6 +113,12 @@ var Untar = (function () {
 
   }
 
+  if (typeof define == 'function' && typeof define.amd == 'object' && define.amd) {
+    define(["bitjs-io"], function () {
+      return Untar;
+    })
+  }
+  
   return Untar;
 
 })();
